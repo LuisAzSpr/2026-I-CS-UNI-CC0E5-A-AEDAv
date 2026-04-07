@@ -57,6 +57,7 @@ public:
     virtual value_type  get(size_t index);
     virtual size_t  size();
     virtual string toString();
+    virtual void toVector(string texto);
 
     iterator begin() { return iterator(this, 0); }
     iterator end()   { return iterator(this, m_size); }
@@ -122,6 +123,27 @@ string Vector<T>::toString(){
 }
 
 template <typename T>
+void Vector<T>::toVector(string texto){
+    if(texto[0] != '[' || texto[texto.size() - 1] != ']'){
+        throw std::invalid_argument("Error al convertir vector, faltan limitadores");
+    }
+
+    // Quitar corchetes
+    texto = texto.substr(1, texto.size() - 2);
+
+    istringstream ss(texto);
+    string item;
+
+    while (getline(ss, item, ',')) {
+        istringstream convert(item);
+        T valor;
+        convert >> valor;   // convierte string a T
+        push_back(valor);
+    }
+}
+
+
+template <typename T>
 ostream& operator<<(ostream& os, Vector<T>& v){
     return os << v.toString();
 }
@@ -129,6 +151,9 @@ ostream& operator<<(ostream& os, Vector<T>& v){
 // TODO: Implementar como PR
 template <typename T>
 istream& operator>>(istream& is, Vector<T>& v){
+    string cadena = "";
+    is >> cadena;
+    v.toVector(cadena);
     return is;
 }
 
