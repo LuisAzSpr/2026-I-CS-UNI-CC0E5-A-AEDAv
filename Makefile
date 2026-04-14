@@ -1,10 +1,9 @@
 CXX = g++
-CXXFLAGS = -std=c++2b -Wall -g -pthread # Añadido -pthread
-LDFLAGS = -pthread # Añadido -pthread
+CXXFLAGS = -std=c++11 -Wall -g
 
-TARGET = main
+TARGET = main.exe
 SRCS = main.cpp \
-       containers/vector.cpp
+        containers/vector.cpp
 
 OBJS = $(SRCS:.cpp=.o)
 
@@ -16,7 +15,8 @@ $(TARGET): $(OBJS)
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
+# Versión para Windows
 clean:
-	rm -f $(OBJS) $(TARGET)
+	del /f /q main.o containers\vector.o $(TARGET)
 
 .PHONY: all clean

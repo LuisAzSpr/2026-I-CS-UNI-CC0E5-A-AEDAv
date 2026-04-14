@@ -80,6 +80,7 @@ public:
     virtual value_type  get(size_t index);
     virtual size_t size();
     virtual string toString();
+    virtual void toVector(string);
 
     forward_iterator begin() { return forward_iterator(this, m_data); }
     forward_iterator end()   { return forward_iterator(this, m_data + m_size); }
@@ -90,12 +91,14 @@ public:
     // TODO: Agregar control concurrente
     template <typename Func, typename... Args>
     void ForEach(Func func, Args &&...  args){
+        scoped_lock lock(m_mtx);
         ::ForEach(begin(), end(), func, std::forward<Args>(args)... );
     }
 
     // TODO: Agregar control concurrente
     template <typename Func, typename... Args>
     void ReverseForEach(Func func, Args &&...  args){
+        scoped_lock lock(m_mtx);
         ::ForEach(rbegin(), rend(), func, std::forward<Args>(args)... );
     }
 };
@@ -139,6 +142,27 @@ Vector<T>::get(size_t index){
 }
 
 template <typename T>
+void Vector<T>::toVector(string texto){
+    if(texto[0] != '[' || texto[texto.size() - 1] != ']'){
+        throw std::invalid_argument("Error al convertir vector, faltan limitadores");
+    }
+
+    // Quitar corchetes
+    texto = texto.substr(1, texto.size() - 2);
+
+    istringstream ss(texto);
+    string item;
+
+    while (getline(ss, item, ',')) {
+        istringstream convert(item);
+        T valor;
+        convert >> valor;   // convierte string a T
+        push_back(valor);
+    }
+}
+
+
+template <typename T>
 size_t Vector<T>::size(){
     return m_size;
 }
@@ -160,9 +184,11 @@ ostream& operator<<(ostream& os, Vector<T>& v){
     return os << v.toString();
 }
 
-// TODO: Implementar como PR
 template <typename T>
 istream& operator>>(istream& is, Vector<T>& v){
+    string cadena = "";
+    is >> cadena;
+    v.toVector(cadena);
     return is;
 }
 
