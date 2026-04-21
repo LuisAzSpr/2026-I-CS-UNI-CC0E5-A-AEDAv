@@ -17,7 +17,12 @@ class LinkedListForwardIterator : public general_iterator<Container, LinkedListF
     using MySelf = LinkedListForwardIterator<Container>;
     using Parent = general_iterator<Container, MySelf>;
     using Parent::Parent;
+
     // TODO: Completar el operator++
+    MySelf operator++() {
+        this->m_pNode = this->m_pNode->getNext();
+        return *this;
+    }
 };
 
 // Linked List Node
@@ -75,15 +80,44 @@ private:
 public:
     LinkedList() {}
     LinkedList(const LinkedList &other){ // Copy constructor
+        Node *cur = other.m_pRoot;
+        while (cur) {
+            Node *newNode = new Node(cur->getData());
+            if (!m_pRoot) {
+                m_pRoot = m_tail = newNode;
+            } else {
+                m_tail->setNext(newNode);
+                m_tail = newNode;
+            }
+            ++m_size;
+            cur = cur->getNext();
+        }
     }
-    LinkedList(LinkedList &&other){ // Move constructor
+    LinkedList(LinkedList &&other) {   // Move constructor
+        m_pRoot = other.m_pRoot;
+        m_tail  = other.m_tail;
+        m_size  = other.m_size;
+        other.m_pRoot = nullptr;       // Dejar fuente en estado vacío válido
+        other.m_tail  = nullptr;
+        other.m_size  = 0;
     }
+    
     LinkedList& operator=(const LinkedList &other){ // Copy assignment operator
     }
     LinkedList& operator=(LinkedList &&other){ // Move assignment operator
     }
     
-    virtual        ~LinkedList() {}
+    virtual ~LinkedList() {
+        Node *cur = m_pRoot;
+        while (cur) {
+            Node *next = cur->getNext();
+            delete cur;
+            cur = next;
+        }
+        m_pRoot = m_tail = nullptr;
+        m_size = 0;
+    }
+
     virtual void    push_front(value_type value, Ref ref);
     virtual void    pop_front();
     virtual void    push_back(value_type value, Ref ref);
@@ -108,6 +142,91 @@ public:
     }
 };
 
+template <typename Trait>
+void LinkedList<Trait>::push_front(value_type value, Ref ref) {
+    unique_lock<shared_mutex> lock(m_mtx);
+    Node *newNode = new Node(value, ref, m_pRoot);
+    m_pRoot = newNode;
+    if (!m_tail)
+        m_tail = m_pRoot;
+    ++m_size;
+}
+
+template <typename Trait>
+void LinkedList<Trait>::pop_front() {
+    unique_lock<shared_mutex> lock(m_mtx);
+    if (!m_pRoot) return;
+    Node *toDelete = m_pRoot;
+    m_pRoot = m_pRoot->getNext();
+    if (!m_pRoot)
+        m_tail = nullptr;
+    delete toDelete;
+    --m_size;
+}
+
+template <typename Trait>
+void LinkedList<Trait>::push_back(value_type value, Ref ref) {
+    unique_lock<shared_mutex> lock(m_mtx);
+    Node *newNode = new Node(value, ref);
+    if (!m_tail) {
+        m_pRoot = m_tail = newNode;
+    } else {
+        m_tail->setNext(newNode);
+        m_tail = newNode;
+    }
+    ++m_size;
+}
+
+template <typename Trait>
+void LinkedList<Trait>::pop_back() {
+    unique_lock<shared_mutex> lock(m_mtx);
+    if (!m_pRoot) return;
+    if (m_pRoot == m_tail) {
+        delete m_pRoot;
+        m_pRoot = m_tail = nullptr;
+    } else {
+        Node *prev = m_pRoot;
+        while (prev->getNext() != m_tail)
+            prev = prev->getNext();
+        delete m_tail;
+        m_tail = prev;
+        m_tail->setNext(nullptr);
+    }
+    --m_size;
+}
+
+template <typename Trait>
+typename LinkedList<Trait>::value_type& LinkedList<Trait>::operator[](size_t index) {
+    shared_lock<shared_mutex> lock(m_mtx);
+    Node *cur = m_pRoot;
+    for (size_t i = 0; i < index && cur; ++i)
+        cur = cur->getNext();
+    return cur->getDataRef();
+}
+
+template <typename Trait>
+string LinkedList<Trait>::toString() const {
+    shared_lock<shared_mutex> lock(m_mtx);
+    ostringstream oss;
+    oss << "[";
+    Node *cur = m_pRoot;
+    bool first = true;
+    while (cur) {
+        if (!first) oss << ",";
+        oss << cur->getData();
+        first = false;
+        cur = cur->getNext();
+    }
+    oss << "]";
+    return oss.str();
+}
+
+// ─── operator<< / operator>> ────────────────────────────────────────
+template <typename Trait>
+ostream& operator<<(ostream &os, const LinkedList<Trait> &list) {
+    return os << list.toString();
+}
+
 template <typename T>
 void LinkedList<T>::internal_insert(Node* &pPr  ev, const value_type &value, Ref ref){
     if(!pPrev || m_comp(value, pPrev->getDataRef())){
@@ -119,6 +238,8 @@ void LinkedList<T>::internal_insert(Node* &pPr  ev, const value_type &value, Ref
     }
     internal_insert(pPrev->getNextRef(), value, ref);
 }
+
+
 
 template <typename T>
 void LinkedList<T>::insert(const value_type &value, Ref ref){
