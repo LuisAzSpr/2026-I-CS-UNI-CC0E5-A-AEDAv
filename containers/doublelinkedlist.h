@@ -153,39 +153,9 @@ public:
         this->m_size++;
     }
 
-    // ---- operator<< ----
-    friend ostream& operator<<(ostream& os, const DoubleLinkedList& list) {
-        shared_lock<shared_mutex> lock(list.m_mtx);
-        os << "[";
-        Node* act = static_cast<Node*>(list.m_pRoot);
-        while (act) {
-            os << "(" << act->getData() << "," << act->getRef() << ")";
-            if (act->getNext()) os << ",";
-            act = act->getNext();
-        }
-        os << "]";
-        return os;
-    }
-
-    // ---- operator>> ----
-    friend istream& operator>>(istream& is, DoubleLinkedList& list) {
-        char ch;
-        if (!(is >> ch) || ch != '[') {
-            is.clear(ios_base::failbit);
-            return is;
-        }
-        value_type val;
-        Ref ref;
-        char comma, parenClose;
-        while (is >> ch && ch != ']') {
-            if (ch == '(') {
-                if (is >> val >> comma >> ref >> parenClose)
-                    if (comma == ',' && parenClose == ')')
-                        list.push_back(val, ref);
-            }
-        }
-        return is;
-    }
+    // operator<< y operator>> se heredan de LinkedList:
+    //   <<  usa do_print (no override aquí: traversal lineal = idéntico al base)
+    //   >>  llama push_back (virtual) → DoubleLinkedList::push_back (setPrev correcto)
 };
 
 #endif

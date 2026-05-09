@@ -185,31 +185,19 @@ public:
         return this->m_size;
     }
 
-    // ------- operadores  >> << -------
-    friend ostream& operator<<(ostream& os, const CircularLinkedList& list) {
-        shared_lock<shared_mutex> lock(list.m_mtx);
-        os << "[";
-        Node* act = static_cast<Node*>(list.m_pRoot);
-        for (size_t i = 0; i < list.m_size; i++) {
+protected:
+    // do_print: recorre con m_size porque tail->next != nullptr
+    void do_print(ostream& os) const override {
+        Node* act = static_cast<Node*>(this->m_pRoot);
+        for (size_t i = 0; i < this->m_size; i++) {
             if (i > 0) os << ",";
             os << "(" << act->getData() << "," << act->getRef() << ")";
             act = act->getNext();
         }
-        os << "]";
-        return os;
     }
-
-    friend istream& operator>>(istream& is, CircularLinkedList& list) {
-        char ch;
-        if (!(is >> ch) || ch != '[') { is.clear(ios_base::failbit); return is; }
-        value_type val; Ref ref; char comma, parenClose;
-        while (is >> ch && ch != ']')
-            if (ch == '(')
-                if (is >> val >> comma >> ref >> parenClose)
-                    if (comma == ',' && parenClose == ')')
-                        list.push_back(val, ref);
-        return is;
-    }
+    // operator<< y operator>> se heredan de LinkedList:
+    //   <<  llama do_print (virtual) → este override
+    //   >>  llama push_back (virtual) → CircularLinkedList::push_back
 };
 
 #endif
