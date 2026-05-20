@@ -32,6 +32,22 @@ public:
     }
 };
 
+// Iterador Backward (solo listas con getPrev: DLL, CDLL)
+template <typename Container>
+class LinkedListBackwardIterator : public general_iterator<Container, LinkedListBackwardIterator<Container>>{
+public:
+    using MySelf = LinkedListBackwardIterator<Container>;
+    using Parent = general_iterator<Container, MySelf>;
+    using Parent::Parent;
+
+    MySelf operator++() {
+        if (this->m_pNode) {
+            this->m_pNode = this->m_pNode->getPrev();
+        }
+        return *this;
+    }
+};
+
 // Linked List Node
 template <typename T, typename NodeType = void>
 class LLNode{
@@ -42,6 +58,7 @@ private:
     Ref m_ref;
     Node *m_next;
 public:
+    using value_type = T;
     LLNode() : m_data(T()), m_ref(Ref()), m_next(nullptr) {}
     LLNode(T data, Ref ref) : m_data(data), m_ref(ref), m_next(nullptr) {}
     LLNode(T data, Ref ref, Node *next) : m_data(data), m_ref(ref), m_next(next) {}
@@ -59,15 +76,13 @@ public:
 
 // Traits de Ordenamiento
 template <typename T>
-struct AscendingLinkedListTrait : BaseTrait<T, less<T>>{
-    using Node = LLNode<T>;
+struct AscendingLinkedListTrait  : public BaseTrait<LLNode<T>, less<T>>{
 };
-
 
 template <typename T>
-struct DescendingLinkedListTrait : BaseTrait<T, greater<T>>{
-    using Node = LLNode<T>;
+struct DescendingLinkedListTrait : public BaseTrait<LLNode<T>, greater<T>>{
 };
+
 
 // Contenedor Principal LinkedList
 template <typename Trait>
@@ -175,7 +190,7 @@ public:
     friend ostream& operator<<(ostream& os, const LinkedList& list) {
         shared_lock<shared_mutex> lock(list.m_mtx);
         os << "[";
-        list.do_print(os);  // virtual → cada derivada imprime a su manera
+        list.do_print(os); 
         os << "]";
         return os;
     }
