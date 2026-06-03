@@ -196,14 +196,14 @@ public:
     }
 
     friend istream& operator>>(istream& is, LinkedList& list) {
-        char ch;
+        Char ch;
         if (!(is >> ch) || ch != '[') {
             is.clear(ios_base::failbit);
             return is;
         }
         value_type val;
         Ref ref;
-        char comma, parenClose;
+        Char comma, parenClose;
         while (is >> ch && ch != ']') {
             if (ch == '(') {
                 if (is >> val >> comma >> ref >> parenClose) {

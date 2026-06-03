@@ -41,8 +41,8 @@ void LinkedListDemo(){
     auto [data_front, ref_front] = listMove.pop_front();
     cout << "Pop -> Dato: " << data_front << " | Metadato (Ref): " << ref_front << endl;
     LinkedList<AscendingLinkedListTrait<T1>> listconc;
-    auto worker = [&listconc](int thread_id) {
-        for(int i = 0; i < 1000; i++) {
+    auto worker = [&listconc](size_t thread_id) {
+        for(size_t i = 0; i < 1000; i++) {
             listconc.push_front(i, thread_id);
         }
     };
@@ -127,8 +127,8 @@ void DoubleLinkedListDemo() {
 
     // 9. Concurrencia
     DoubleLinkedList<AscendingDLLTrait<T1>> listConc;
-    auto worker = [&listConc](int id){
-        for (int i = 0; i < 1000; i++)
+    auto worker = [&listConc](size_t id){
+        for (size_t i = 0; i < 1000; i++)
             listConc.push_back(i, id);
     };
     thread t1(worker,1), t2(worker,2), t3(worker,3),t4(worker,4), t5(worker,5);
@@ -181,8 +181,8 @@ void CircularLinkedListDemo() {
  
     // 6. Concurrencia
     CircularLinkedList<AscendingCLLTrait<T1>> listConc;
-    auto worker = [&listConc](int id){
-        for (int i = 0; i < 1000; i++) listConc.push_back(i, id);
+    auto worker = [&listConc](size_t id){
+        for (size_t i = 0; i < 1000; i++) listConc.push_back(i, id);
     };
     thread t1(worker,1), t2(worker,2), t3(worker,3), t4(worker,4), t5(worker,5);
     t1.join(); t2.join(); t3.join(); t4.join(); t5.join();
@@ -240,8 +240,8 @@ void CircularDoubleLinkedListDemo() {
  
     // 7. Concurrencia
     CircularDoubleLinkedList<AscendingCDLLTrait<T1>> listConc;
-    auto worker = [&listConc](int id){
-        for (int i = 0; i < 1000; i++) listConc.push_back(i, id);
+    auto worker = [&listConc](size_t id){
+        for (size_t i = 0; i < 1000; i++) listConc.push_back(i, id);
     };
     thread t1(worker,1), t2(worker,2), t3(worker,3), t4(worker,4), t5(worker,5);
     t1.join(); t2.join(); t3.join(); t4.join(); t5.join();
@@ -254,8 +254,8 @@ void TestConcurrencia() {
     LinkedList<AscendingLinkedListTrait<T1>> list;
 
     // 5 hilos van a intentar meter 1000 elementos cada uno al mismo tiempo
-    auto worker = [&list](int thread_id) {
-        for(int i = 0; i < 1000; i++) {
+    auto worker = [&list](size_t thread_id) {
+        for(size_t i = 0; i < 1000; i++) {
             list.push_front(i, thread_id);
         }
     };

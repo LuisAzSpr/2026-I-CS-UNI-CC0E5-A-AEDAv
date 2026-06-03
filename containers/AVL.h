@@ -10,15 +10,15 @@ public:
     using value_type = T;
     using Node = BinaryTreeNode<T>;
 private:
-    int m_height;
+    size_t m_height;
 public:
     AVLNode() : BinaryTreeNode<T>(), m_height(1) {}
     AVLNode(T data, Ref ref) : BinaryTreeNode<T>(data, ref), m_height(1) {}
     AVLNode(T data, Ref ref, Node *parent) : BinaryTreeNode<T>(data, ref, parent), m_height(1) {}
     virtual ~AVLNode() {}
 
-    int  getHeight() const { return m_height; }
-    void setHeight(int h)  { m_height = h; }
+    size_t getHeight() const  { return m_height; }
+    void   setHeight(size_t h){ m_height = h; }
 };
 
 // Traits de Ordenamiento
@@ -85,9 +85,9 @@ public:
     // ~AVL: se reusa el destructor virtual de BinaryTree (internal_destroy
 
 protected:
-    int   internal_height(Node *n);
-    void  internal_update_height(Node *n);
-    int   internal_balance(Node *n);
+    size_t internal_height(Node *node);
+    void   internal_update_height(Node *node);
+    Type   internal_balance(Node *node);
     void  internal_rotate_left(Node *&pNode);
     void  internal_rotate_right(Node *&pNode);
     void  internal_insert(Node *&pNode, Node *parent, const value_type &value, Ref ref) override;
@@ -96,20 +96,21 @@ protected:
 
 // Implementacion de Metodos del Arbol
 template <typename Trait>
-int AVL<Trait>::internal_height(Node *n){
-    return n == nullptr ? 0 : static_cast<AVLNode<value_type>*>(n)->getHeight();
+size_t AVL<Trait>::internal_height(Node *node){
+    return node == nullptr ? 0 : static_cast<AVLNode<value_type>*>(node)->getHeight();
 }
 
 template <typename Trait>
-void AVL<Trait>::internal_update_height(Node *n){
-    int hl = internal_height(n->getChild(0));
-    int hr = internal_height(n->getChild(1));
-    static_cast<AVLNode<value_type>*>(n)->setHeight(1 + (hl > hr ? hl : hr));
+void AVL<Trait>::internal_update_height(Node *node){
+    size_t hl = internal_height(node->getChild(0));
+    size_t hr = internal_height(node->getChild(1));
+    static_cast<AVLNode<value_type>*>(node)->setHeight(1 + (hl > hr ? hl : hr));
 }
 
 template <typename Trait>
-int AVL<Trait>::internal_balance(Node *n){
-    return internal_height(n->getChild(0)) - internal_height(n->getChild(1));
+Type AVL<Trait>::internal_balance(Node *node){
+    return static_cast<Type>(internal_height(node->getChild(0)))
+         - static_cast<Type>(internal_height(node->getChild(1)));
 }
 
 template <typename Trait>
@@ -157,7 +158,7 @@ void AVL<Trait>::internal_insert(Node *&pNode, Node *parent, const value_type &v
 
     internal_update_height(pNode);
 
-    int hb = internal_balance(pNode);
+    Type hb = internal_balance(pNode);
     if (hb > 1){
         if (internal_balance(pNode->getChild(0)) < 0){
             internal_rotate_left(pNode->getChildRef(0));
@@ -176,11 +177,11 @@ template <typename Trait>
 typename AVL<Trait>::Node*
 AVL<Trait>::internal_clone(Node *src, Node *parent){
     if (!src) return nullptr;
-    Node *n = new AVLNode<value_type>(src->getData(), src->getRef(), parent);
-    n->setChild(0, internal_clone(src->getLeft(),  n));
-    n->setChild(1, internal_clone(src->getRight(), n));
-    internal_update_height(n);
-    return n;
+    Node *cloned = new AVLNode<value_type>(src->getData(), src->getRef(), parent);
+    cloned->setChild(0, internal_clone(src->getLeft(),  cloned));
+    cloned->setChild(1, internal_clone(src->getRight(), cloned));
+    internal_update_height(cloned);
+    return cloned;
 }
 
 #endif

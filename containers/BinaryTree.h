@@ -12,6 +12,7 @@
 #include <utility>
 #include <tuple>
 #include "general_iterator.h"
+#include "bt_iterators.h"
 #include "util.h"
 #include "../types.h"
 #include "traits.h"
@@ -50,204 +51,13 @@ public:
     void   setParent(Node *parent)          { m_pParent = parent; }
 };
 
-// Traits de Ordenamiento (mismo patron que AscendingLinkedListTrait)
+// Traits de Ordenamiento
 template <typename T>
 struct AscendingBTTrait : public BaseTrait<BinaryTreeNode<T>, less<T>>{
 };
 
 template <typename T>
 struct DescendingBTTrait : public BaseTrait<BinaryTreeNode<T>, greater<T>>{
-};
-
-
-// Iterador Forward Inorder
-template <typename Container>
-class BTInorderForwardIterator : public general_iterator<Container, BTInorderForwardIterator<Container>>{
-public:
-    using MySelf = BTInorderForwardIterator<Container>;
-    using Parent = general_iterator<Container, MySelf>;
-    using Node   = typename Container::Node;
-    using Parent::Parent;
-
-    MySelf operator++() {
-        Node *n = this->m_pNode;
-        if (n) {
-            if (n->getRight()){
-                n = n->getRight();
-                while (n->getLeft()) n = n->getLeft();
-            } else {
-                Node *p = n->getParent();
-                while (p && n == p->getRight()) {
-                    n = p;
-                    p = p->getParent();
-                }
-                n = p;
-            }
-            this->m_pNode = n;
-        }
-        return *this;
-    }
-};
-
-// Iterador Backward Inorder
-template <typename Container>
-class BTInorderBackwardIterator : public general_iterator<Container, BTInorderBackwardIterator<Container>>{
-public:
-    using MySelf = BTInorderBackwardIterator<Container>;
-    using Parent = general_iterator<Container, MySelf>;
-    using Node   = typename Container::Node;
-    using Parent::Parent;
-
-    MySelf operator++() {
-        Node *n = this->m_pNode;
-        if (n) {
-            if (n->getLeft()){
-                n = n->getLeft();
-                while (n->getRight()) n = n->getRight();
-            } else {
-                Node *p = n->getParent();
-                while (p && n == p->getLeft()) {
-                    n = p;
-                    p = p->getParent();
-                }
-                n = p;
-            }
-            this->m_pNode = n;
-        }
-        return *this;
-    }
-};
-
-// Iterador Forward Preorder
-template <typename Container>
-class BTPreorderForwardIterator : public general_iterator<Container, BTPreorderForwardIterator<Container>>{
-public:
-    using MySelf = BTPreorderForwardIterator<Container>;
-    using Parent = general_iterator<Container, MySelf>;
-    using Node   = typename Container::Node;
-    using Parent::Parent;
-
-    MySelf operator++(){
-        Node *n = this->m_pNode;
-        if (n){
-            if (n->getLeft()){
-                this->m_pNode = n->getLeft();
-                return *this;
-            }
-            if (n->getRight()){
-                this->m_pNode = n->getRight();
-                return *this;
-            }
-            Node *p = n->getParent();
-            while (p){
-                if (n == p->getLeft() && p->getRight()) {
-                    this->m_pNode = p->getRight();
-                    return *this;
-                }
-                n = p;
-                p = p->getParent();
-            }
-            this->m_pNode = nullptr;
-        }
-        return *this;
-    }
-};
-
-// Iterador Backward Preorder
-template <typename Container>
-class BTPreorderBackwardIterator : public general_iterator<Container, BTPreorderBackwardIterator<Container>>{
-public:
-    using MySelf = BTPreorderBackwardIterator<Container>;
-    using Parent = general_iterator<Container, MySelf>;
-    using Node   = typename Container::Node;
-    using Parent::Parent;
-
-    MySelf operator++(){
-        Node *n = this->m_pNode;
-        if (n){
-            Node *p = n->getParent();
-            if (!p){
-                this->m_pNode = nullptr;
-                return *this;
-            }
-            if (n == p->getRight() && p->getLeft()){
-                // preorder_last del subarbol izquierdo del padre
-                Node *m = p->getLeft();
-                while (m->getLeft() || m->getRight())
-                    m = m->getRight() ? m->getRight() : m->getLeft();
-                this->m_pNode = m;
-            } else {
-                this->m_pNode = p;
-            }
-        }
-        return *this;
-    }
-};
-
-// Iterador Forward Postorder
-template <typename Container>
-class BTPostorderForwardIterator : public general_iterator<Container, BTPostorderForwardIterator<Container>>{
-public:
-    using MySelf = BTPostorderForwardIterator<Container>;
-    using Parent = general_iterator<Container, MySelf>;
-    using Node   = typename Container::Node;
-    using Parent::Parent;
-
-    MySelf operator++(){
-        Node *n = this->m_pNode;
-        if (n) {
-            Node *p = n->getParent();
-            if (!p){
-                this->m_pNode = nullptr;
-                return *this;
-            }
-            if (n == p->getLeft() && p->getRight()){
-                // postorder_first del subarbol derecho del padre
-                Node *m = p->getRight();
-                while (m->getLeft() || m->getRight())
-                    m = m->getLeft() ? m->getLeft() : m->getRight();
-                this->m_pNode = m;
-            } else {
-                this->m_pNode = p;
-            }
-        }
-        return *this;
-    }
-};
-
-// Iterador Backward Postorder
-template <typename Container>
-class BTPostorderBackwardIterator : public general_iterator<Container, BTPostorderBackwardIterator<Container>>{
-public:
-    using MySelf = BTPostorderBackwardIterator<Container>;
-    using Parent = general_iterator<Container, MySelf>;
-    using Node   = typename Container::Node;
-    using Parent::Parent;
-
-    MySelf operator++(){
-        Node *n = this->m_pNode;
-        if (n){
-            if (n->getRight()){
-                this->m_pNode = n->getRight();
-                return *this;
-            }
-            if (n->getLeft()){
-                this->m_pNode = n->getLeft();
-                return *this;
-            }
-            Node *p = n->getParent();
-            while (p) {
-                if (n == p->getRight() && p->getLeft()){
-                    this->m_pNode = p->getLeft();
-                    return *this;
-                }
-                n = p;
-                p = p->getParent();
-            }
-            this->m_pNode = nullptr;
-        }
-        return *this;
-    }
 };
 
 
@@ -260,23 +70,16 @@ public:
     using Comp       = typename Trait::Comp;
     using MySelf     = BinaryTree<Trait>;
 
-    using inorder_iterator             = BTInorderForwardIterator<MySelf>;
-    using inorder_reverse_iterator     = BTInorderBackwardIterator<MySelf>;
-    using preorder_iterator            = BTPreorderForwardIterator<MySelf>;
-    using preorder_reverse_iterator    = BTPreorderBackwardIterator<MySelf>;
-    using postorder_iterator           = BTPostorderForwardIterator<MySelf>;
-    using postorder_reverse_iterator   = BTPostorderBackwardIterator<MySelf>;
+    using inorder_iterator             = bt_inorder_iterator<MySelf, 1>;
+    using inorder_reverse_iterator     = bt_inorder_iterator<MySelf, 0>;
+    using preorder_iterator            = bt_descend_iterator<MySelf, 1>;
+    using preorder_reverse_iterator    = bt_ascend_iterator <MySelf, 0>;
+    using postorder_iterator           = bt_ascend_iterator <MySelf, 1>;
+    using postorder_reverse_iterator   = bt_descend_iterator<MySelf, 0>;
 
     // begin/end por defecto = inorder forward
     using forward_iterator             = inorder_iterator;
     using backward_iterator            = inorder_reverse_iterator;
-
-    friend inorder_iterator;
-    friend inorder_reverse_iterator;
-    friend preorder_iterator;
-    friend preorder_reverse_iterator;
-    friend postorder_iterator;
-    friend postorder_reverse_iterator;
 
 protected:
     Node   *m_pRoot = nullptr;
@@ -286,8 +89,8 @@ protected:
 
     virtual void  internal_insert(Node *&pNode, Node *parent, const value_type &value, Ref ref);
     virtual Node* internal_clone(Node *src, Node *parent);
-    void  internal_destroy(Node *n);
-    void  internal_dump(ostream &os, Node *n, bool &first) const;
+    void  internal_destroy(Node *node);
+    void  internal_dump(ostream &os, Node *node, bool &first) const;
 
 public:
     BinaryTree() {}
@@ -344,52 +147,60 @@ public:
 
     // Operaciones
     virtual void   insert(const value_type &value, Ref ref);
+    virtual Node*  find(const value_type &value) const;
     virtual size_t size() const;
 
     // Iteradores
     inorder_iterator begin() {
-        Node *n = m_pRoot;
-        while (n && n->getLeft()) {
-            n = n->getLeft();
+        Node *current = m_pRoot;
+        while (current && current->getLeft()) {
+            current = current->getLeft();
         }
-        return inorder_iterator(this, n);
+        return inorder_iterator(this, current);
     }
-    inorder_iterator end() {return inorder_iterator(this, nullptr);}
-    inorder_reverse_iterator rbegin() {
-        Node *n = m_pRoot;
-        while (n && n->getRight()) {
-            n = n->getRight();
-        }
-        return inorder_reverse_iterator(this, n);
-    }
-    inorder_reverse_iterator rend() {return inorder_reverse_iterator(this, nullptr);}
+    inorder_iterator end() { return inorder_iterator(this, nullptr); }
 
-    preorder_iterator pre_begin() {return preorder_iterator(this, m_pRoot);}
-    preorder_iterator pre_end() {return preorder_iterator(this, nullptr);}
+    inorder_reverse_iterator rbegin() {
+        Node *current = m_pRoot;
+        while (current && current->getRight()) {
+            current = current->getRight();
+        }
+        return inorder_reverse_iterator(this, current);
+    }
+    inorder_reverse_iterator rend() { return inorder_reverse_iterator(this, nullptr); }
+
+    preorder_iterator pre_begin() { return preorder_iterator(this, m_pRoot); }
+    preorder_iterator pre_end()   { return preorder_iterator(this, nullptr); }
 
     preorder_reverse_iterator pre_rbegin() {
-        Node *n = m_pRoot;
-        while (n && (n->getLeft() || n->getRight())) {
-            n = n->getRight() ? n->getRight() : n->getLeft();
+        Node *current = m_pRoot;
+        while (current && (current->getLeft() || current->getRight())) {
+            current = current->getRight() ? current->getRight() : current->getLeft();
         }
-        return preorder_reverse_iterator(this, n);
+        return preorder_reverse_iterator(this, current);
     }
-    preorder_reverse_iterator pre_rend() {return preorder_reverse_iterator(this, nullptr);}
+    preorder_reverse_iterator pre_rend() { return preorder_reverse_iterator(this, nullptr); }
 
     postorder_iterator post_begin() {
-        Node *n = m_pRoot;
-        while (n && (n->getLeft() || n->getRight())) {
-            n = n->getLeft() ? n->getLeft() : n->getRight();
+        Node *current = m_pRoot;
+        while (current && (current->getLeft() || current->getRight())) {
+            current = current->getLeft() ? current->getLeft() : current->getRight();
         }
-        return postorder_iterator(this, n);
+        return postorder_iterator(this, current);
     }
-    postorder_iterator post_end() {return postorder_iterator(this, nullptr);}
+    postorder_iterator post_end() { return postorder_iterator(this, nullptr); }
 
-    postorder_reverse_iterator post_rbegin() {return postorder_reverse_iterator(this, m_pRoot);}
-    postorder_reverse_iterator post_rend() {return postorder_reverse_iterator(this, nullptr);}
+    postorder_reverse_iterator post_rbegin() { return postorder_reverse_iterator(this, m_pRoot); }
+    postorder_reverse_iterator post_rend()   { return postorder_reverse_iterator(this, nullptr); }
+
+    preorder_view         <MySelf> preorder()          { return {this}; }
+    preorder_reverse_view <MySelf> preorder_reverse()  { return {this}; }
+    postorder_view        <MySelf> postorder()         { return {this}; }
+    postorder_reverse_view<MySelf> postorder_reverse() { return {this}; }
+    reverse_view          <MySelf> reverse()           { return {this}; }
 
 
-    // ForEach  begin()/end() son inorder, asi que recorre inorder.
+    // ForEach  begin()/end()
     template <typename Func, typename... Args>
     void ForEach(Func func, Args &&... args) {
         unique_lock<shared_mutex> lock(m_mtx);
@@ -410,14 +221,14 @@ public:
     }
 
     friend istream& operator>>(istream& is, BinaryTree& tree) {
-        char ch;
+        Char ch;
         if (!(is >> ch) || ch != '['){
             is.clear(ios_base::failbit);
             return is;
         }
         value_type val;
         Ref ref;
-        char comma, parenClose;
+        Char comma, parenClose;
         while (is >> ch && ch != ']'){
             if (ch == '(') {
                 if (is >> val >> comma >> ref >> parenClose) {
@@ -455,33 +266,47 @@ size_t BinaryTree<Trait>::size() const {
     return m_size;
 }
 
+// find: busca un valor usando el comparador del trait
+template <typename Trait>
+typename BinaryTree<Trait>::Node*
+BinaryTree<Trait>::find(const value_type &value) const {
+    shared_lock<shared_mutex> lock(m_mtx);
+    Node *curr = m_pRoot;
+    while(curr){
+        if(m_comp(value, curr->getData()))      curr = curr->getLeft();
+        else if(m_comp(curr->getData(), value)) curr = curr->getRight();
+        else                                    return curr;
+    }
+    return nullptr;
+}
+
 
 template <typename Trait>
 typename BinaryTree<Trait>::Node*
 BinaryTree<Trait>::internal_clone(Node *src, Node *parent) {
     if (!src) return nullptr;
-    Node *n = new Node(src->getData(), src->getRef(), parent);
-    n->setChild(0, internal_clone(src->getLeft(),  n));
-    n->setChild(1, internal_clone(src->getRight(), n));
-    return n;
+    Node *cloned = new Node(src->getData(), src->getRef(), parent);
+    cloned->setChild(0, internal_clone(src->getLeft(),  cloned));
+    cloned->setChild(1, internal_clone(src->getRight(), cloned));
+    return cloned;
 }
 
 template <typename Trait>
-void BinaryTree<Trait>::internal_destroy(Node *n) {
-    if (!n) return;
-    internal_destroy(n->getLeft());
-    internal_destroy(n->getRight());
-    delete n;
+void BinaryTree<Trait>::internal_destroy(Node *node) {
+    if (!node) return;
+    internal_destroy(node->getLeft());
+    internal_destroy(node->getRight());
+    delete node;
 }
 
 template <typename Trait>
-void BinaryTree<Trait>::internal_dump(ostream &os, Node *n, bool &first) const {
-    if (!n) return;
-    internal_dump(os, n->getLeft(), first);
+void BinaryTree<Trait>::internal_dump(ostream &os, Node *node, bool &first) const {
+    if (!node) return;
+    internal_dump(os, node->getLeft(), first);
     if (!first) os << ",";
-    os << "(" << n->getData() << "," << n->getRef() << ")";
+    os << "(" << node->getData() << "," << node->getRef() << ")";
     first = false;
-    internal_dump(os, n->getRight(), first);
+    internal_dump(os, node->getRight(), first);
 }
 
 #endif

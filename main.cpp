@@ -3,7 +3,7 @@
 // g++ -std=c++2b main.cpp containers/vector.cpp -o main
 void ListsDemo();
 void TreeDemo();
-int main(){
+Type main(){
     // DemoVector();
     //DemoConcurrentVector();
     ListsDemo();
