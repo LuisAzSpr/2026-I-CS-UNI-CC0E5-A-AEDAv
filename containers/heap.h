@@ -149,7 +149,7 @@ void Heap<Trait>::heapifyUp(size_t index) {
 template <typename Trait>
 std::tuple<typename Heap<Trait>::value_type, Ref> Heap<Trait>::extract() {
     unique_lock<shared_mutex> lock(m_mtx);
-    if(m_vec.empty()) return value_type();
+    if(m_vec.empty()) return std::make_tuple(value_type(), Ref());
 
     size_t last = m_vec.size() - 1;
     if(last > 0) std::swap(m_vec[0], m_vec[last]);
